@@ -1,9 +1,9 @@
 package blockchain;
 
-import jdk.nashorn.internal.parser.JSONParser;
-
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
@@ -13,7 +13,7 @@ public class Chain {
 	private ArrayList<Block> chain = new ArrayList<>();
 
 	public Chain() {
-		Block genesisBlock = new Block("Genesis Block", "0");
+		Block genesisBlock = new Block("Hello World!", "nulln");
 		chain.add(genesisBlock);
 	}
 	public Chain(String s){
@@ -33,7 +33,9 @@ public class Chain {
 	public Chain(ArrayList<Block> chain) {
 		this.chain = chain;
 	}
-
+	public Chain(Path p){
+		this(openFromFile(p));
+	}
 	//for testing validity
 	public void setBlockData(int i, String hash) {
 		chain.get(i).setData(hash);
@@ -47,7 +49,6 @@ public class Chain {
 		for (int i = 1; i < chain.size(); i++) {
 			Block currentBlock = chain.get(i);
 			Block prevBlock = chain.get(i - 1);
-
 			if (!currentBlock.calcHash().equals(currentBlock.getHash())) return false;
 			if (!new Block(currentBlock.getData(), prevBlock.getHash(), currentBlock.getTimeStamp()).getHash().equals(currentBlock.getHash())) return false;
 		}
@@ -76,7 +77,26 @@ public class Chain {
 		}
 		return String.format("[%s]", out);
 	}
+	public static String openFromFile(){
+		try {
+			byte[] encoded = Files.readAllBytes(Paths.get(System.getProperty("user.dir"), "chain.json"));
+			return new String(encoded, StandardCharsets.UTF_8);
 
+		} catch (Exception e ){
+			return "";
+		}
+	}
+	public static String openFromFile(Path p){
+		try {
+			byte[] encoded = Files.readAllBytes(p);
+			return new String(encoded, StandardCharsets.UTF_8);
+
+		} catch (Exception e ){
+			e.printStackTrace();
+
+			return "";
+		}
+	}
 	public void saveToFile() {
 		try {
 			Files.write(Paths.get(System.getProperty("user.dir"), "chain.json"), chain.toString().getBytes());
@@ -84,33 +104,5 @@ public class Chain {
 			e.printStackTrace();
 		}
 	}
-}
-class BlockBuilder {
-	private String data = "";
-	private String prevHash = "";
-	private long timeStamp = 0;
-	private Chain chain;
-	public BlockBuilder(Chain c) {
-		this.chain = c;
-	}
-	public void update(String key, String value){
-		switch (key){
-			case "data":
-				this.data = value;
-				break;
-			case "prevHash":
-				this.prevHash = value;
-				break;
-			case "timeStamp":
-				this.timeStamp = Long.parseLong(value);
-				break;
-		}
-		if(!data.equals("") && !prevHash.equals("") && timeStamp != 0){
-			Block block = new Block(data, prevHash, timeStamp);
-			chain.addBlock(block);
-			this.data = "";
-			this.prevHash = "";
-			this.timeStamp = 0;
-		}
-	}
+
 }

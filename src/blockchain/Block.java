@@ -56,3 +56,33 @@ public class Block {
 				'}';
 	}
 }
+
+class BlockBuilder {
+	private String data = "";
+	private String prevHash = "";
+	private long timeStamp = 0;
+	private Chain chain;
+	public BlockBuilder(Chain c) {
+		this.chain = c;
+	}
+	public void update(String key, String value){
+		switch (key){
+			case "data":
+				this.data = value;
+				break;
+			case "prevHash":
+				this.prevHash = value;
+				break;
+			case "timeStamp":
+				this.timeStamp = Long.parseLong(value);
+				break;
+		}
+		if(!data.equals("") && !prevHash.equals("") && timeStamp != 0){
+			Block block = new Block(data, prevHash, timeStamp);
+			chain.addBlock(block);
+			this.data = "";
+			this.prevHash = "";
+			this.timeStamp = 0;
+		}
+	}
+}

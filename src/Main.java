@@ -1,22 +1,48 @@
+import blockchain.Block;
 import blockchain.Chain;
+
+import java.nio.file.Paths;
+import java.util.Scanner;
 
 public class Main {
 	public static void main(String[] args) {
-		Chain chain1 = new Chain();
-		chain1.addBlock("Taske");
-		chain1.addBlock("Sava");
-		chain1.addBlock("Some data to be saved");
-		//chain.setBlockData(1,"Sava gej");
+		Chain chain = new Chain();
+		String user;
+		do {
+			user = getUserInput("Open existing chain ('y'/'n')? ");
+		} while (!user.equals("y") && !user.equals("n"));
+		if (user.equals("y")){
+			chain = new Chain(Paths.get(System.getProperty("user.dir"),"chain.json"));
+		} else {
+			System.out.println("Started new blockchain!");
+		}
+		if (chain.isValid()){
+			System.out.println(chain.toString());
+			System.out.println("Chain is valid!");
+		} else {
+			System.out.println("Chain is not valid!");
+			System.exit(-1);
+		}
+		for(;;){
+			user = getUserInput("Add data ('n' to cancel):");
+			if (!user.equals("n")) chain.addBlock(new Block(user, chain.getBlock().getHash()));
+			else break;
+		}
+		do {
+			user = getUserInput("Save ('y'/'n')?");
+		} while (!user.equals("y") && !user.equals("n"));
+		if (user.equals("y")) chain.saveToFile();
+		System.out.println(chain.toString());
 
-		System.out.println(chain1.toString());
-		Chain chain2 = new Chain("[{\"data\":\"Genesis Block\", \"prevHash\":\"0\",\"timeStamp\":\"1545761486598\"},\n" +
-				"{\"data\":\"Taske\", \"prevHash\":\"120a0e8cb25f9b8f10f3b6c0b7e25bfd6c2c9aab430f50ba77c14b84982ab5b0\",\"timeStamp\":\"1545761486631\"},\n" +
-				"{\"data\":\"Sava\", \"prevHash\":\"c94c73a1bde23077a34aab2f06711ecfa6ae6b95ae616c73c6208ea8d161bb30\",\"timeStamp\":\"1545761486631\"},\n" +
-				"{\"data\":\"Some data to be saved\", \"prevHash\":\"373c11235670bdee4a73cf983e89003dd525fe579ad6176aa86a4a8aeaa343ff\",\"timeStamp\":\"1545761486632\"}]\n");
-		chain1.setBlockData(1,"Some changed data");
-		System.out.printf("%s\n", chain1.isValid());
-		System.out.println(chain2.toString());
-		System.out.println(chain2.isValid());
-		chain1.saveToFile();
 	}
+	public static String getUserInput(String text){
+		Scanner input = new Scanner(System.in);
+		try {
+			System.out.printf(text);
+			return input.nextLine();
+		} catch (Exception e) {
+			return getUserInput(text);
+		}
+	}
+
 }
